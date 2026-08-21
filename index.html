@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tests per tema · Temari general PAMO 24-25</title>
+<style>
+:root{
+  --nit:#2E1D40; --nit-2:#3D2954; --porpra:#6A4894; --porpra-cl:#EFE9F5; --porpra-br:#D9CCE8;
+  --paper:#FAF7F2; --carta:#FFFFFF; --tinta:#241F2B; --tinta-2:#5B5266; --linia:#E4DEDA;
+  --blau:#1F5C8B; --blau-cl:#E3EDF5; --ocre:#A87C22; --ocre-cl:#F7EDD3;
+  --verd:#2C7A50; --verd-cl:#E4F1E9; --carmi:#A32338; --carmi-cl:#F8E5E8;
+  --serif:Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:10px; --ombra:0 1px 2px rgba(46,29,64,.06),0 4px 14px rgba(46,29,64,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--tinta);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+
+/* ---------- capçalera ---------- */
+header{background:var(--nit);color:#fff;padding:14px 0;position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(46,29,64,.18)}
+header .wrap{display:flex;align-items:center;gap:14px}
+.marca{font-family:var(--serif);font-size:19px;font-weight:400;letter-spacing:.01em;margin-right:auto}
+.marca span{display:block;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.62;font-weight:600}
+.hbtn{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:99px;padding:5px 13px;font-size:13px}
+.hbtn:hover{background:rgba(255,255,255,.2)}
+.perfil-pill{background:var(--porpra);border:none;color:#fff;border-radius:99px;padding:5px 14px;font-size:13px;font-weight:600}
+
+/* ---------- genèric ---------- */
+.pantalla{display:none;padding:30px 0 70px}
+.pantalla.on{display:block}
+h1{font-family:var(--serif);font-size:28px;font-weight:400;margin:0 0 6px}
+h2{font-family:var(--serif);font-size:20px;font-weight:400;margin:34px 0 12px}
+.sub{color:var(--tinta-2);font-size:14px;margin:0 0 26px}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:-.01em}
+.card{background:var(--carta);border:1px solid var(--linia);border-radius:var(--r);box-shadow:var(--ombra)}
+
+/* ---------- perfil ---------- */
+.perfils{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:26px 0}
+.perfils button{background:var(--carta);border:2px solid var(--linia);border-radius:var(--r);padding:30px 20px;text-align:center;box-shadow:var(--ombra);transition:.15s}
+.perfils button:hover{border-color:var(--porpra);transform:translateY(-2px)}
+.perfils .nom{font-family:var(--serif);font-size:26px;display:block;margin-bottom:4px}
+.perfils .est{font-size:12px;color:var(--tinta-2)}
+.nota{background:var(--porpra-cl);border-left:3px solid var(--porpra);border-radius:0 8px 8px 0;padding:13px 16px;font-size:13.5px;color:#3E2E52;margin:18px 0}
+.nota b{color:var(--nit)}
+
+/* ---------- guia de ritme ---------- */
+.guia{background:linear-gradient(100deg,var(--nit) 0%,var(--nit-2) 100%);color:#fff;border-radius:var(--r);padding:17px 20px;display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.guia .lab{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;opacity:.6;font-weight:700}
+.guia .tit{font-family:var(--serif);font-size:19px;margin-top:2px}
+.guia .anar{margin-left:auto;background:#fff;color:var(--nit);border:none;border-radius:99px;padding:9px 18px;font-weight:600;font-size:14px;white-space:nowrap}
+
+/* ---------- llistat temes ---------- */
+.barra{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.barra .tog{margin-left:auto;display:flex;background:var(--porpra-cl);border-radius:99px;padding:3px}
+.barra .tog button{border:none;background:none;border-radius:99px;padding:5px 13px;font-size:12.5px;color:var(--porpra);font-weight:600}
+.barra .tog button.on{background:var(--porpra);color:#fff}
+.tema{border-bottom:1px solid var(--linia)}
+.tema:last-child{border-bottom:none}
+.tcap{display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;background:none;border:none;width:100%;text-align:left}
+.tcap:hover{background:var(--porpra-cl)}
+.pos{font-family:var(--mono);font-size:11px;color:#fff;background:var(--porpra);border-radius:5px;padding:3px 6px;min-width:30px;text-align:center;font-weight:700}
+.pos.fet{background:var(--tinta-2)}
+.tnum{font-family:var(--mono);font-size:11.5px;color:var(--tinta-2);min-width:30px}
+.tnom{font-family:var(--serif);font-size:16.5px;flex:1}
+.tinfo{font-size:12px;color:var(--tinta-2);text-align:right;white-space:nowrap}
+.fletxa{color:var(--porpra);font-size:12px;transition:transform .18s}
+.tema.obert .fletxa{transform:rotate(90deg)}
+.tcos{display:none;padding:2px 16px 16px 62px}
+.tema.obert .tcos{display:block}
+.xips{display:flex;flex-wrap:wrap;gap:9px;margin-top:4px}
+.xip{background:var(--carta);border:1.5px solid var(--porpra-br);border-radius:8px;padding:8px 14px;text-align:left;transition:.13s}
+.xip:hover{border-color:var(--porpra);background:var(--porpra-cl)}
+.xip .t{font-weight:600;font-size:13.5px;display:block}
+.xip .s{font-size:11.5px;color:var(--tinta-2)}
+.xip.fet{border-color:var(--verd);background:var(--verd-cl)}
+.xip.pend{border-color:var(--ocre);background:var(--ocre-cl)}
+.xip.pend .s{color:#6E4F0C;font-weight:600}
+.repesca-hdr{background:var(--ocre-cl);border-left:3px solid var(--ocre);border-radius:0 8px 8px 0;padding:13px 16px;font-size:13.5px;color:#5A400A;margin-bottom:18px}
+.repesca-hdr b{color:#3F2C05}
+.ronda{background:#6E4F0C;color:#fff;border-radius:5px;padding:2px 8px;font-size:10.5px;font-weight:700;letter-spacing:.04em;font-family:var(--mono)}
+.tancat{display:inline-block;background:var(--verd-cl);color:var(--verd);border-radius:99px;padding:5px 16px;font-size:13px;font-weight:600;margin-top:10px}
+.xip.fet .s{color:var(--verd);font-weight:600}
+.avis-curt{display:inline-block;background:var(--ocre-cl);color:#6E4F0C;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:600;margin-left:8px}
+.badge-curs{background:var(--porpra);color:#fff;border-radius:5px;padding:2px 8px;font-size:10.5px;font-weight:700;letter-spacing:.04em}
+
+/* ---------- config ---------- */
+.opgrup{margin:22px 0}
+.opgrup>.lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-2);font-weight:700;margin-bottom:9px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{background:var(--carta);border:2px solid var(--linia);border-radius:var(--r);padding:15px 17px;text-align:left}
+.opt:hover{border-color:var(--porpra-br)}
+.opt.on{border-color:var(--porpra);background:var(--porpra-cl)}
+.opt .t{font-weight:600;font-size:14.5px;display:block;margin-bottom:2px}
+.opt .s{font-size:12.5px;color:var(--tinta-2);line-height:1.4}
+.primari{background:var(--porpra);color:#fff;border:none;border-radius:var(--r);padding:14px 30px;font-size:15.5px;font-weight:600;box-shadow:var(--ombra)}
+.primari:hover{background:#5A3B80}
+.primari:disabled{background:var(--linia);color:var(--tinta-2);cursor:not-allowed;box-shadow:none}
+.secund{background:none;border:1.5px solid var(--porpra-br);color:var(--porpra);border-radius:var(--r);padding:12px 22px;font-weight:600;font-size:14px}
+.secund:hover{background:var(--porpra-cl)}
+
+/* ---------- test ---------- */
+.topbar{position:sticky;top:56px;background:var(--paper);padding:12px 0 10px;z-index:10;border-bottom:1px solid var(--linia);margin-bottom:22px}
+.topbar .l1{display:flex;align-items:center;gap:12px;font-size:12.5px;color:var(--tinta-2);margin-bottom:8px}
+.topbar .l1 b{color:var(--tinta);font-family:var(--mono);font-size:12px}
+.prog{height:5px;background:var(--porpra-cl);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--porpra);border-radius:99px;transition:width .25s}
+.qcard{background:var(--carta);border:1px solid var(--linia);border-radius:var(--r);box-shadow:var(--ombra);padding:22px 24px;margin-bottom:18px}
+.qmeta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:15px;padding-bottom:13px;border-bottom:1px dashed var(--linia)}
+.tag{font-family:var(--mono);font-size:10.5px;font-weight:700;border-radius:5px;padding:3px 7px;letter-spacing:.02em}
+.tag.f{background:var(--porpra-cl);color:var(--porpra)}
+.tag.e{background:var(--blau-cl);color:var(--blau)}
+.tag.p{background:var(--ocre-cl);color:#6E4F0C}
+.tag.s{background:#EFEDEA;color:#5B5266}
+.tag.v{background:#F1EEEA;color:var(--tinta-2)}
+.enunciat{font-family:var(--serif);font-size:18px;line-height:1.6;margin:0 0 18px}
+.ops{display:flex;flex-direction:column;gap:9px}
+.op{display:flex;gap:13px;align-items:flex-start;background:var(--carta);border:1.5px solid var(--linia);border-radius:9px;padding:12px 15px;text-align:left;width:100%;transition:.12s}
+.op:hover:not(:disabled){border-color:var(--porpra);background:var(--porpra-cl)}
+.op .ltr{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--porpra);background:var(--porpra-cl);border-radius:5px;width:23px;height:23px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px}
+.op .txt{font-family:var(--serif);font-size:15.5px;line-height:1.5}
+.op.sel{border-color:var(--porpra);background:var(--porpra-cl);border-width:2px}
+.op.ok{border-color:var(--verd);background:var(--verd-cl);border-width:2px}
+.op.ok .ltr{background:var(--verd);color:#fff}
+.op.ko{border-color:var(--carmi);background:var(--carmi-cl);border-width:2px}
+.op.ko .ltr{background:var(--carmi);color:#fff}
+.op:disabled{cursor:default;opacity:1;color:var(--tinta);-webkit-text-fill-color:var(--tinta)}
+.veredicte{margin-top:15px;padding:11px 15px;border-radius:8px;font-size:14px;font-weight:600}
+.veredicte.ok{background:var(--verd-cl);color:var(--verd)}
+.veredicte.ko{background:var(--carmi-cl);color:var(--carmi)}
+.veredicte .r{display:block;font-weight:400;color:var(--tinta);font-family:var(--serif);font-size:14.5px;margin-top:5px}
+.pistes{margin-top:14px;display:flex;gap:9px;flex-wrap:wrap}
+.pbtn{background:none;border:1.5px dashed var(--porpra-br);color:var(--porpra);border-radius:99px;padding:6px 15px;font-size:12.5px;font-weight:600}
+.pbtn:hover{background:var(--porpra-cl);border-style:solid}
+.pbox{margin-top:11px;background:var(--porpra-cl);border-left:3px solid var(--porpra);border-radius:0 8px 8px 0;padding:12px 15px;font-size:14px;color:#3E2E52}
+.pbox .lab{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;opacity:.65;display:block;margin-bottom:3px}
+.nav{display:flex;gap:12px;align-items:center;margin-top:6px}
+.nav .dreta{margin-left:auto}
+
+/* ---------- resultats ---------- */
+.marcador{background:var(--carta);border:1px solid var(--linia);border-radius:var(--r);box-shadow:var(--ombra);padding:28px;text-align:center;margin-bottom:24px}
+.marcador .n{font-family:var(--serif);font-size:52px;line-height:1;color:var(--porpra)}
+.marcador .n small{font-size:24px;color:var(--tinta-2)}
+.marcador .pc{font-size:14px;color:var(--tinta-2);margin-top:7px}
+.llindar{display:inline-block;margin-top:13px;border-radius:99px;padding:5px 16px;font-size:13px;font-weight:600}
+.llindar.ok{background:var(--verd-cl);color:var(--verd)}
+.llindar.ko{background:var(--carmi-cl);color:var(--carmi)}
+.rev{background:var(--carta);border:1px solid var(--linia);border-left:3px solid var(--carmi);border-radius:0 var(--r) var(--r) 0;padding:16px 19px;margin-bottom:12px}
+.rev .e{font-family:var(--serif);font-size:15.5px;margin:7px 0 10px}
+.rev .lin{font-size:13.5px;padding:6px 11px;border-radius:6px;margin-bottom:5px}
+.rev .lin.ok{background:var(--verd-cl)}
+.rev .lin.ko{background:var(--carmi-cl)}
+.rev .lin b{font-family:var(--mono);font-size:11px;margin-right:6px}
+.buit{text-align:center;color:var(--tinta-2);padding:28px;font-size:14px}
+.peu{margin-top:44px;padding-top:18px;border-top:1px solid var(--linia);font-size:11.5px;color:var(--tinta-2);line-height:1.7}
+.dlg{position:fixed;inset:0;background:rgba(36,31,43,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.dlg.on{display:flex}
+.dlg .box{background:var(--carta);border-radius:var(--r);padding:26px;max-width:460px;width:100%;box-shadow:0 18px 50px rgba(46,29,64,.28)}
+.dlg h3{font-family:var(--serif);font-weight:400;margin:0 0 10px;font-size:21px}
+.dlg p{font-size:14px;color:var(--tinta-2);margin:0 0 18px}
+.dlg .fila{display:flex;gap:10px;justify-content:flex-end}
+@media(max-width:620px){.opts,.perfils{grid-template-columns:1fr}.tcos{padding-left:16px}.guia{flex-direction:column;align-items:flex-start}.guia .anar{margin-left:0}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="marca">Tests per tema<span>Temari general · PAMO 24-25</span></div>
+  <button class="hbtn" id="btnEquip" style="display:none" onclick="mostraEquip()">Equip</button>
+  <button class="hbtn" id="btnDades" style="display:none">Progrés</button>
+  <button class="perfil-pill" id="btnPerfil" style="display:none"></button>
+</div></header>
+
+<!-- LOGIN -->
+<section class="pantalla on" id="p-login"><div class="wrap">
+  <h1>Accedeix</h1>
+  <p class="sub">Entra amb el teu correu. Rebràs un enllaç d'accés temporal, sense contrasenya.</p>
+  <div class="card" style="padding:26px;max-width:420px;margin-top:22px">
+    <div id="loginForm">
+      <input type="email" id="inpEmail" placeholder="el-teu-correu@exemple.com" style="width:100%;padding:12px 14px;border:1.5px solid var(--linia);border-radius:8px;font-size:15px;margin-bottom:14px;font-family:inherit;color:var(--tinta)">
+      <button class="primari" style="width:100%" onclick="enviaEnllac()">Envia'm l'enllaç d'accés</button>
+      <div id="loginErr" style="color:var(--carmi);font-size:13px;margin-top:10px"></div>
+    </div>
+    <div id="loginEnviat" style="display:none">
+      <p style="margin:0 0 16px">T'hem enviat un enllaç a <b id="correuEnviat"></b>. Obre'l des d'aquest mateix dispositiu per entrar.</p>
+      <button class="secund" onclick="tornaLogin()">Torna-hi</button>
+    </div>
+  </div>
+  <div class="nota" id="notaInici" style="max-width:420px"></div>
+</div></section>
+
+<!-- TEMES -->
+<section class="pantalla" id="p-temes"><div class="wrap">
+  <div class="guia" id="guia"></div>
+  <div class="barra">
+    <h1 style="font-size:22px;margin:0">Els 18 temes</h1>
+    <div class="tog">
+      <button id="tog-ritme" class="on" onclick="setOrdre('ritme')">Ordre d'estudi</button>
+      <button id="tog-num" onclick="setOrdre('num')">Ordre numèric</button>
+    </div>
+  </div>
+  <div class="card" id="llista"></div>
+  <div class="peu" id="peuTemes"></div>
+</div></section>
+
+<!-- CONFIG -->
+<section class="pantalla" id="p-config"><div class="wrap">
+  <button class="secund" style="padding:7px 15px;font-size:13px" onclick="mostra('p-temes')">← Temes</button>
+  <h1 style="margin-top:18px" id="cfgTit"></h1>
+  <p class="sub" id="cfgSub"></p>
+  <div id="zonaRepesca"></div>
+  <div class="opgrup">
+    <div class="lab">Recorregut</div>
+    <div class="opts">
+      <button class="opt on" id="rec-sencer" onclick="setCfg('rec','sencer')"><span class="t">Test sencer</span><span class="s">Totes les preguntes seguides, sense parades.</span></button>
+      <button class="opt" id="rec-tandes" onclick="setCfg('rec','tandes')"><span class="t">Tandes de 10</span><span class="s" id="txtTandes"></span></button>
+    </div>
+  </div>
+  <div class="opgrup">
+    <div class="lab">Correcció</div>
+    <div class="opts">
+      <button class="opt on" id="cor-imm" onclick="setCfg('cor','imm')"><span class="t">Immediata</span><span class="s">Veus si has encertat just després de respondre cada pregunta.</span></button>
+      <button class="opt" id="cor-final" onclick="setCfg('cor','final')"><span class="t">Al final</span><span class="s">Respons tot el test i el corregeixes de cop. Més semblant a l'examen.</span></button>
+    </div>
+  </div>
+  <div class="nota" id="cfgNota"></div>
+  <button class="primari" onclick="comenca()">Comença el test</button>
+</div></section>
+
+<!-- TEST -->
+<section class="pantalla" id="p-test"><div class="wrap">
+  <div class="topbar">
+    <div class="l1">
+      <button class="secund" style="padding:4px 12px;font-size:12px" onclick="surt()">← Sortir</button>
+      <span id="tbInfo"></span>
+      <b id="tbComptador" style="margin-left:auto"></b>
+    </div>
+    <div class="prog"><i id="tbProg"></i></div>
+  </div>
+  <div id="zonaQ"></div>
+  <div class="nav" id="zonaNav"></div>
+</div></section>
+
+<!-- RESULTAT -->
+<section class="pantalla" id="p-result"><div class="wrap">
+  <h1 id="resTit"></h1>
+  <p class="sub" id="resSub"></p>
+  <div class="marcador" id="resMarc"></div>
+  <div id="resRev"></div>
+  <div class="nav" style="margin-top:24px">
+    <button class="primari" onclick="mostra('p-temes')">Tornar als temes</button>
+    <button class="secund" onclick="repeteix()">Repetir aquest test</button>
+  </div>
+</div></section>
+
+<!-- EQUIP (només admin) -->
+<section class="pantalla" id="p-equip"><div class="wrap">
+  <button class="secund" style="padding:7px 15px;font-size:13px" onclick="mostra('p-temes')">← Temes</button>
+  <h1 style="margin-top:18px">Progrés de l'equip</h1>
+  <p class="sub">Només visible per a l'administradora. Només lectura.</p>
+  <div class="card" id="equipLlista" style="padding:20px"></div>
+</div></section>
+
+<!-- DIÀLEG DADES -->
+<div class="dlg" id="dlgDades"><div class="box">
+  <h3>Progrés</h3>
+  <p id="dlgTxt"></p>
+  <div class="fila" style="justify-content:flex-start;flex-wrap:wrap">
+    <button class="secund" onclick="exporta()">Exporta JSON</button>
+    <button class="secund" onclick="document.getElementById('fitxer').click()">Importa JSON</button>
+    <button class="secund" style="border-color:#E8C4CC;color:var(--carmi)" onclick="esborra()">Esborra el meu progrés</button>
+  </div>
+  <input type="file" id="fitxer" accept=".json" style="display:none" onchange="importa(this)">
+  <div class="fila" style="margin-top:18px"><button class="primari" onclick="tancaDlg()">Tancar</button></div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="data.js"></script>
+<script>
+/* ============ SUPABASE ============ */
+const SUPA_URL='https://arnwtlvsriacpahhjtbc.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybnd0bHZzcmlhY3BhaGhqdGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjQ0MTMsImV4cCI6MjEwMjU0MDQxM30.2ZO_zlHoR9srUMP8zA5PoAfzyD-rYsjmdeqs7AE-FoQ';
+const sb=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+
+/* ============ ESTAT ============ */
+let S={uid:null,nom:null,rol:null,email:null,testos:{}};
+let ordre='ritme', cfg={rec:'sencer',cor:'imm'}, T=null;
+
+function claul(uid){return 'pamo_tests_v3_'+uid}
+function carregaLocal(uid){ try{const r=localStorage.getItem(claul(uid)); return r?JSON.parse(r):{}}catch(e){return {}} }
+function desaLocal(){ try{localStorage.setItem(claul(S.uid),JSON.stringify(S.testos))}catch(e){console.warn('no s\'ha pogut desar local',e)} }
+async function desaRemot(k){
+  try{ await sb.from('progres').upsert({usuari_id:S.uid,test_id:k,dades:S.testos[k],actualitzat_el:new Date().toISOString()},{onConflict:'usuari_id,test_id'}); }
+  catch(e){ console.warn('sincronització pendent, es reintentarà al proper desament',e); }
+}
+function desa(k){ desaLocal(); if(k) desaRemot(k); else Object.keys(S.testos).forEach(desaRemot); }
+const prog=()=>S.testos;
+const tema=t=>DATA.temes.find(x=>x.t===t);
+const clau=(t,n)=>'T'+t+'-'+n;
+function fetsTema(t){const o=tema(t);return o.tests.filter(x=>{const r=prog()[clau(t,x.n)];return r&&!(r.cua||[]).length}).length}
+function temaComplet(t){return fetsTema(t)===tema(t).tests.length}
+
+/* ============ NAVEGACIÓ ============ */
+function mostra(id){document.querySelectorAll('.pantalla').forEach(p=>p.classList.toggle('on',p.id===id));window.scrollTo(0,0)}
+function mostraLogin(){ document.getElementById('btnPerfil').style.display='none'; document.getElementById('btnDades').style.display='none'; document.getElementById('btnEquip').style.display='none'; mostra('p-login'); }
+
+/* ============ SESSIÓ ============ */
+async function enviaEnllac(){
+  const email=document.getElementById('inpEmail').value.trim();
+  document.getElementById('loginErr').textContent='';
+  if(!email){ document.getElementById('loginErr').textContent='Cal un correu.'; return; }
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href.split('#')[0].split('?')[0]}});
+  if(error){ document.getElementById('loginErr').textContent="No s'ha pogut enviar: "+error.message; return; }
+  document.getElementById('correuEnviat').textContent=email;
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('loginEnviat').style.display='';
+}
+function tornaLogin(){ document.getElementById('loginForm').style.display=''; document.getElementById('loginEnviat').style.display='none'; }
+async function tancaSessio(){ if(!confirm('Tancar la sessió?'))return; await sb.auth.signOut(); location.reload(); }
+document.getElementById('btnPerfil').onclick=tancaSessio;
+
+async function entraSessio(session){
+  S.uid=session.user.id; S.email=session.user.email;
+  let {data:perfil}=await sb.from('perfils').select('nom,rol').eq('id',S.uid).single();
+  if(!perfil){ await new Promise(r=>setTimeout(r,1200)); ({data:perfil}=await sb.from('perfils').select('nom,rol').eq('id',S.uid).single()); }
+  S.nom=perfil?perfil.nom:S.email; S.rol=perfil?perfil.rol:'estudiant';
+  S.testos=carregaLocal(S.uid);
+  await sincronitzaInici();
+  document.getElementById('btnPerfil').textContent=S.nom;
+  document.getElementById('btnPerfil').style.display='';
+  document.getElementById('btnDades').style.display='';
+  document.getElementById('btnEquip').style.display = S.rol==='admin'?'':'none';
+  pintaTemes(); mostra('p-temes');
+}
+async function sincronitzaInici(){
+  try{
+    const {data,error}=await sb.from('progres').select('test_id,dades').eq('usuari_id',S.uid);
+    if(error||!data)return;
+    let canvis=false;
+    data.forEach(fila=>{
+      const rem=fila.dades, loc=S.testos[fila.test_id];
+      if(!loc || (rem.intents||0)>(loc.intents||0)){ S.testos[fila.test_id]=rem; canvis=true; }
+    });
+    if(canvis) desaLocal();
+    for(const k in S.testos){
+      const rem=data.find(f=>f.test_id===k);
+      if(!rem || (S.testos[k].intents||0)>(rem.dades.intents||0)) await desaRemot(k);
+    }
+  }catch(e){ console.warn('sense connexió amb Supabase: es fa servir només la còpia local',e); }
+}
+
+async function mostraEquip(){
+  mostra('p-equip');
+  const el=document.getElementById('equipLlista');
+  el.innerHTML='Carregant…';
+  const {data:perfils}=await sb.from('perfils').select('id,nom,email,rol');
+  const {data:progresTot}=await sb.from('progres').select('usuari_id,dades');
+  if(!perfils){ el.innerHTML='No s\'ha pogut carregar.'; return; }
+  const totalTests=DATA.temes.reduce((a,t)=>a+t.tests.length,0);
+  const files=perfils.filter(p=>p.id!==S.uid).map(p=>{
+    const seus=(progresTot||[]).filter(r=>r.usuari_id===p.id);
+    const fets=seus.filter(r=>!(r.dades.cua||[]).length).length;
+    return `<div style="padding:14px 0;border-bottom:1px solid var(--linia)">
+      <b style="font-family:var(--serif);font-size:17px">${p.nom}</b> <span style="font-size:12px;color:var(--tinta-2)">(${p.email})</span>
+      <div style="font-size:13.5px;color:var(--tinta-2);margin-top:4px">${fets} de ${totalTests} tests tancats · ${seus.length} tests iniciats</div>
+    </div>`;
+  }).join('');
+  el.innerHTML=files||'<div class="buit">Encara no hi ha cap altra usuària registrada.</div>';
+}
+
+const tancaDlg=()=>document.getElementById('dlgDades').classList.remove('on');
+document.getElementById('btnDades').onclick=()=>{
+  const n=Object.keys(prog()).length, total=DATA.temes.reduce((a,t)=>a+t.tests.length,0);
+  document.getElementById('dlgTxt').innerHTML=`<b>${S.nom}</b> té <b>${n}</b> de ${total} tests fets. `+
+   `El progrés es guarda al núvol i es manté si canvies de dispositiu; a més queda en còpia local en aquest navegador.`;
+  document.getElementById('dlgDades').classList.add('on');
+};
+
+/* ============ LLISTAT DE TEMES ============ */
+function setOrdre(o){ordre=o;document.getElementById('tog-ritme').classList.toggle('on',o==='ritme');document.getElementById('tog-num').classList.toggle('on',o==='num');pintaTemes()}
+
+function seguent(){ for(const t of DATA.ordre){ if(!temaComplet(t)) return t; } return null; }
+
+function pintaTemes(){
+  const seg=seguent(), g=document.getElementById('guia');
+  if(seg){ const o=tema(seg);
+    g.innerHTML=`<div><div class="lab">Següent segons el ritme acordat</div><div class="tit">${o.pos}r · Tema ${o.t} — ${o.nom}</div></div>`+
+      `<button class="anar" onclick="obreTema(${seg},true)">Anar-hi</button>`;
+    g.style.display='';
+  } else { g.innerHTML=`<div><div class="lab">Ritme</div><div class="tit">Has passat per tots els temes del recorregut.</div></div>`; }
+
+  let ts=[...DATA.temes];
+  if(ordre==='ritme') ts.sort((a,b)=>(a.pos??99)-(b.pos??99)||a.t-b.t);
+  else ts.sort((a,b)=>a.t-b.t);
+
+  const files=ts.map(o=>{
+    const fets=fetsTema(o.t), nt=o.tests.length;
+    const esSeg = o.t===seg;
+    const posLab = o.fet?'fet':(o.pos+'r');
+    const xips=o.tests.map(x=>{
+      const r=prog()[clau(o.t,x.n)];
+      let cl='',s=`${x.q.length} preguntes`;
+      if(r){
+        const pend=(r.cua||[]).length;
+        if(pend){ cl='pend'; s=`${r.millor}/${x.q.length} · ${pend} error${pend>1?'s':''} per repescar`; }
+        else { cl='fet'; s=`${r.millor}/${x.q.length} · tancat`; }
+      }
+      return `<button class="xip ${cl}" onclick="obreConfig(${o.t},${x.n})"><span class="t">${x.lab}</span><span class="s">${s}</span></button>`;
+    }).join('');
+    return `<div class="tema" id="tm-${o.t}">
+      <button class="tcap" onclick="document.getElementById('tm-${o.t}').classList.toggle('obert')">
+        <span class="pos ${o.fet?'fet':''}">${posLab}</span>
+        <span class="tnum">T${String(o.t).padStart(2,'0')}</span>
+        <span class="tnom">${o.nom}${esSeg?' <span class="badge-curs">SEGÜENT</span>':''}${o.curt?'<span class="avis-curt">test curt</span>':''}</span>
+        <span class="tinfo">${o.red} preguntes<br>${fets}/${nt} tests fets</span>
+        <span class="fletxa">▶</span>
+      </button>
+      <div class="tcos"><div class="xips">${xips}</div></div></div>`;
+  }).join('');
+  document.getElementById('llista').innerHTML=files;
+  const m=DATA.meta;
+  document.getElementById('peuTemes').innerHTML=
+   `<b>D'on surt tot això.</b> ${m.redactats} redactats únics, extrets del corpus de proves anteriors; cap pregunta és inventada. `+
+   `Surten de <b>les ${m.corpus} preguntes del corpus, classificades al 100%</b> pregunta a pregunta, agrupades en ${m.families} grups de tema i família. `+
+   `Aquí ja hi ha tot el que el corpus té d'aquest temari.<br>`+
+   `<b>Cada test porta una sola pregunta de cada família</b>, per no fer-te respondre dues vegades el mateix. La 1a passada tria el redactat que més vegades ha caigut; la 2a el següent. `+
+   `S'han fusionat ${m.fusionats} redactats que només es diferenciaven en una coma o un accent, i s'han descartat ${m.descartats} de les passades 3 i següents, que donaven tests d'una i dues preguntes.<br>`+
+   `Els temes marcats <i>test curt</i> no arriben a 10 preguntes: és el material que hi ha, i no s'ha completat amb preguntes d'altres temes.<br>`+
+   `<b>Un test no compta com a fet fins que has tancat la repesca</b> dels errors. En ocre, els que tenen errors pendents; en verd, els tancats.`;
+}
+
+function obreTema(t,scroll){
+  setOrdre(ordre);
+  const el=document.getElementById('tm-'+t); if(!el)return;
+  el.classList.add('obert'); mostra('p-temes');
+  if(scroll) setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),60);
+}
+
+/* ============ CONFIGURACIÓ ============ */
+let selT=null,selN=null;
+function obreConfig(t,n){
+  selT=t;selN=n; const o=tema(t), tst=o.tests.find(x=>x.n===n), q=tst.q.length;
+  document.getElementById('cfgTit').textContent=`Tema ${t} · ${tst.lab}`;
+  const r=prog()[clau(t,n)], pend=r?(r.cua||[]).length:0;
+  document.getElementById('cfgSub').innerHTML=`${o.nom} — <b>${q} preguntes</b>`+
+    (r?` · ja el vas fer ${r.intents} vegada${r.intents>1?'s':''}, millor resultat ${r.millor}/${q}`:'');
+  const zr=document.getElementById('zonaRepesca');
+  if(pend){
+    zr.innerHTML=`<div class="repesca-hdr"><b>Tens ${pend} error${pend>1?'s':''} sense tancar d'aquest test.</b> `+
+      `Torna-hi fins a encertar-los tots: cada encert el treu de la cua i cada error el torna al final. `+
+      `La repesca no puja la nota del test, que continua sent la de la primera volta.</div>`+
+      `<button class="primari" onclick="comencaRepesca()">Repescar els ${pend} errors</button>`+
+      `<div style="margin:16px 0 4px;font-size:12.5px;color:var(--tinta-2)">O bé torna a fer el test sencer des de zero:</div>`;
+    zr.style.display='';
+  } else { zr.innerHTML=''; zr.style.display='none'; }
+  const nt=Math.ceil(q/10);
+  document.getElementById('txtTandes').textContent = q<12
+    ? 'Aquest test és massa curt per partir-lo.'
+    : `${nt} tandes (${Array.from({length:nt},(_,i)=>Math.min(10,q-i*10)).join(' + ')}), amb pausa entre tandes.`;
+  document.getElementById('rec-tandes').disabled = q<12;
+  document.getElementById('rec-tandes').style.opacity = q<12?.45:1;
+  if(q<12) setCfg('rec','sencer');
+  document.getElementById('cfgNota').innerHTML = tst.p===1
+    ? `<b>Una pregunta de cada família.</b> Les ${q} preguntes vénen de ${q} famílies diferents: <b>cap repetida i cap variant del mateix cas</b>. `+
+      `Quan una família tenia diversos redactats s'ha triat el que més vegades ha caigut; els altres els trobaràs a la 2a passada.`
+    : `<b>Segona passada.</b> Els mateixos conceptes que a la 1a passada, però amb un altre redactat i altres distractors. `+
+      `Igualment, una sola pregunta per família: aquí tampoc no es repeteix res.`;
+  mostra('p-config');
+}
+function setCfg(k,v){cfg[k]=v;
+  ['rec-sencer','rec-tandes'].forEach(i=>document.getElementById(i).classList.toggle('on',i==='rec-'+cfg.rec));
+  ['cor-imm','cor-final'].forEach(i=>document.getElementById(i).classList.toggle('on',i==='cor-'+cfg.cor));
+}
+
+/* ============ TEST ============ */
+function comenca(){
+  const o=tema(selT), tst=o.tests.find(x=>x.n===selN);
+  T={mode:'test',t:selT,n:selN,q:tst.q,resp:new Array(tst.q.length).fill(null),vist:new Array(tst.q.length).fill(false),i:0,cor:cfg.cor,rec:cfg.rec,inici:Date.now()};
+  pintaQ(); mostra('p-test');
+}
+const LTR=['A','B','C','D'];
+function barreja(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function comencaRepesca(){
+  const o=tema(selT), tst=o.tests.find(x=>x.n===selN), r=prog()[clau(selT,selN)];
+  T={mode:'repesca',t:selT,n:selN,all:tst.q,total:tst.q.length,pend:new Set(r.cua||[]),ronda:Math.max(1,r.rondes||0),cor:'imm',rec:'sencer'};
+  iniciaRonda(); mostra('p-test');
+}
+function iniciaRonda(){
+  T.q=barreja(T.all.filter(x=>T.pend.has(x.id)));
+  T.resp=new Array(T.q.length).fill(null); T.vist=new Array(T.q.length).fill(false); T.i=0;
+  pintaQ();
+}
+function desaCua(){
+  const k=clau(T.t,T.n), r=prog()[k]; if(!r)return;
+  r.cua=[...T.pend]; r.rondes=T.ronda; r.tancat=T.pend.size===0; desa(k);
+}
+function finalitzaRonda(){
+  if(T.pend.size===0){ tancaRepesca(); return; }
+  T.ronda++; desaCua(); iniciaRonda();
+}
+function tancaRepesca(){
+  desaCua();
+  document.getElementById('resTit').textContent=`Tema ${T.t} · ${tema(T.t).tests.find(x=>x.n===T.n).lab} — repesca tancada`;
+  document.getElementById('resSub').textContent=`${tema(T.t).nom} — ${S.nom}`;
+  const r=prog()[clau(T.t,T.n)];
+  document.getElementById('resMarc').innerHTML=
+    `<div class="n">${r.millor}<small> / ${T.total}</small></div>`+
+    `<div class="pc">nota de la primera volta, que no canvia</div>`+
+    `<div class="tancat">Tots els errors encertats · ${T.ronda} ${T.ronda>1?'rondes':'ronda'} de repesca</div>`;
+  document.getElementById('resRev').innerHTML=
+    `<div class="card buit">Has encertat totes les que havies fallat. El test queda tancat al llistat.<br>`+
+    `<span style="font-size:12.5px">Recorda que tancar la repesca vol dir haver après aquestes respostes, no haver vist tot el que el corpus té d'aquest tema.</span></div>`;
+  mostra('p-result');
+}
+function pistesDe(q){
+  const p=DATA.pistes&&DATA.pistes[q.f]; if(!p)return null;
+  const n1=p.n1&&(p.n1[String(q.p)]||p.n1['1']);
+  return (n1||p.n2)?{n1:n1,n2:p.n2}:null;
+}
+
+function pintaQ(){
+  const q=T.q[T.i], n=T.q.length, o=tema(T.t);
+  const lab=tema(T.t).tests.find(x=>x.n===T.n).lab;
+  document.getElementById('tbInfo').innerHTML = T.mode==='repesca'
+    ? `Tema ${T.t} · ${lab} <span class="ronda">REPESCA · RONDA ${T.ronda}</span>`
+    : `Tema ${T.t} · ${lab} <span style="opacity:.5">·</span> ${T.cor==='imm'?'correcció immediata':'correcció al final'}`;
+  document.getElementById('tbComptador').textContent=`${T.i+1} / ${n}`;
+  document.getElementById('tbProg').style.width=(100*(T.i+1)/n)+'%';
+  const fm=o.fm[q.f]||{};
+  const resp=T.resp[T.i], mostrat = T.cor==='imm' && T.vist[T.i];
+  const tags=[
+    `<span class="tag f">${q.f}</span>`,
+    q.tp==='e'?`<span class="tag e">ESTABLE · memoritzable</span>`
+      :q.tp==='p'?`<span class="tag p">PLANTILLA · la resposta rota</span>`
+      :`<span class="tag s">SOLITÀRIA</span>`,
+    `<span class="tag v">${q.nap===1?'ha caigut 1 cop':'ha caigut '+q.nap+' cops'}</span>`
+  ].join('');
+  const ops=q.o.map((txt,i)=>{
+    let cl='op';
+    if(mostrat){ if(i===q.c)cl+=' ok'; else if(i===resp)cl+=' ko'; }
+    else if(resp===i) cl+=' sel';
+    return `<button class="${cl}" ${mostrat?'disabled':''} onclick="respon(${i})"><span class="ltr">${LTR[i]}</span><span class="txt">${esc(txt)}</span></button>`;
+  }).join('');
+  const p=pistesDe(q);
+  const zonaPistes = p ? `<div class="pistes">
+      ${p.n1?`<button class="pbtn" onclick="pista(1)">Pista 1 · quina trampa té</button>`:''}
+      ${p.n2?`<button class="pbtn" onclick="pista(2)">Pista 2 · cap on mirar</button>`:''}
+    </div><div id="zp"></div>` : '';
+  let ver='';
+  if(mostrat){
+    const be=resp===q.c;
+    ver=`<div class="veredicte ${be?'ok':'ko'}">${be?'Correcta.':'Incorrecta.'}<span class="r"><b class="mono">${LTR[q.c]}</b> — ${esc(q.o[q.c])}</span></div>`;
+  }
+  document.getElementById('zonaQ').innerHTML=`<div class="qcard">
+    <div class="qmeta">${tags}</div>
+    <p class="enunciat">${esc(q.e)}</p>
+    <div class="ops">${ops}</div>
+    ${ver}${zonaPistes}
+  </div>`;
+  pintaNav();
+}
+function pintaNav(){
+  const n=T.q.length, ultima=T.i===n-1, fiTanda = T.rec==='tandes' && (T.i+1)%10===0 && !ultima;
+  const respostes=T.resp.filter(x=>x!==null).length;
+  if(T.mode==='repesca'){
+    const contestada=T.vist[T.i], resten=T.pend.size;
+    let h=`<span style="font-size:12.5px;color:var(--tinta-2)">${T.i+1} de ${n} d'aquesta ronda · ${resten} sense encertar</span><span class="dreta"></span>`;
+    h+= ultima
+      ? `<button class="primari" onclick="finalitzaRonda()" ${contestada?'':'disabled'}>${'Acabar la ronda'}</button>`
+      : `<button class="primari" onclick="vesA(${T.i+1})" ${contestada?'':'disabled'}>Següent →</button>`;
+    document.getElementById('zonaNav').innerHTML=h; return;
+  }
+  let h=`<button class="secund" onclick="vesA(${T.i-1})" ${T.i===0?'disabled style="opacity:.4"':''}>← Anterior</button>`;
+  h+=`<span style="font-size:12.5px;color:var(--tinta-2)">${respostes} de ${n} respostes</span>`;
+  h+=`<span class="dreta"></span>`;
+  if(ultima){
+    h+=`<button class="primari" onclick="acaba()" ${T.cor==='final'&&respostes<n?'disabled':''}>${T.cor==='final'?'Corregir el test':'Veure el resultat'}</button>`;
+  } else if(fiTanda){
+    h+=`<button class="primari" onclick="vesA(${T.i+1})">Acabar la tanda i continuar →</button>`;
+  } else {
+    h+=`<button class="primari" onclick="vesA(${T.i+1})">Següent →</button>`;
+  }
+  document.getElementById('zonaNav').innerHTML=h;
+}
+function respon(i){
+  if(T.cor==='imm'&&T.vist[T.i])return;
+  T.resp[T.i]=i;
+  if(T.cor==='imm')T.vist[T.i]=true;
+  if(T.mode==='repesca'){
+    const q=T.q[T.i];
+    if(i===q.c) T.pend.delete(q.id);
+    desaCua();
+  }
+  pintaQ();
+}
+function vesA(i){ if(i<0||i>=T.q.length)return; T.i=i; pintaQ(); }
+function pista(n){
+  const p=pistesDe(T.q[T.i]); if(!p)return;
+  const z=document.getElementById('zp');
+  const txt = n===1?p.n1:p.n2, lab = n===1?'La trampa':'Cap on mirar';
+  if(!txt)return;
+  if(z.querySelector('[data-p="'+n+'"]'))return;
+  z.innerHTML=`<div class="pbox" data-p="${n}"><span class="lab">${lab}</span>${esc(txt)}</div>`+z.innerHTML;
+}
+function surt(){
+  const msg = T.mode==='repesca'
+    ? 'Surts de la repesca? El que ja has encertat queda desat i podràs reprendre-la des del llistat.'
+    : 'Surts del test? El que has respost no es desarà.';
+  if(confirm(msg)){ if(T.mode==='repesca') desaCua(); pintaTemes(); mostra('p-temes'); }
+}
+
+/* ============ RESULTAT ============ */
+function acaba(){
+  const q=T.q, n=q.length, encerts=q.reduce((a,x,i)=>a+(T.resp[i]===x.c?1:0),0);
+  const k=clau(T.t,T.n), r=prog()[k]||{intents:0,millor:0};
+  r.intents+=1; r.darrer=encerts; r.millor=Math.max(r.millor,encerts); r.total=n; r.data=new Date().toISOString().slice(0,10);
+  r.cua=q.filter((x,i)=>T.resp[i]!==x.c).map(x=>x.id); r.rondes=0; r.tancat=r.cua.length===0;
+  prog()[k]=r; desa(k);
+  const pc=Math.round(100*encerts/n), llindar=Math.round(n*10/30);
+  document.getElementById('resTit').textContent=`Tema ${T.t} · ${tema(T.t).tests.find(x=>x.n===T.n).lab}`;
+  document.getElementById('resSub').textContent=`${tema(T.t).nom} — ${S.nom}, intent ${r.intents}`;
+  document.getElementById('resMarc').innerHTML=
+    `<div class="n">${encerts}<small> / ${n}</small></div><div class="pc">${pc}% d'encerts`+
+    (r.intents>1?` · millor marca ${r.millor}/${n}`:'')+`</div>`+
+    `<div class="llindar ${encerts>=llindar?'ok':'ko'}">${encerts>=llindar?'Per sobre':'Per sota'} del ritme de llindar (${llindar}/${n}, equivalent a 10 de 30)</div>`;
+  const errors=q.map((x,i)=>({x,i})).filter(o=>T.resp[o.i]!==o.x.c);
+  document.getElementById('resRev').innerHTML = errors.length===0
+    ? `<div class="card buit">Cap error. Test tancat, no hi ha res a repescar.</div>`
+    : `<div class="repesca-hdr"><b>Aquestes ${errors.length} tornaran.</b> La repesca te les torna a passar, barrejades, `+
+      `fins que les encertis totes. Cada encert la treu de la cua; cada error la torna al final. `+
+      `<b>La nota del test no puja</b>: continua sent el ${encerts}/${n} d'aquesta primera volta.</div>`+
+      `<button class="primari" style="margin-bottom:22px" onclick="selT=${T.t};selN=${T.n};comencaRepesca()">Comença la repesca · ${errors.length} preguntes</button>`+
+      `<h2>Les que has fallat</h2>`+errors.map(({x,i})=>{
+        const teva=T.resp[i];
+        return `<div class="rev"><span class="tag f">${x.f}</span>
+          <div class="e">${esc(x.e)}</div>
+          ${teva===null?`<div class="lin ko"><b>—</b>Sense respondre</div>`:`<div class="lin ko"><b>${LTR[teva]}</b>${esc(x.o[teva])}</div>`}
+          <div class="lin ok"><b>${LTR[x.c]}</b>${esc(x.o[x.c])}</div></div>`;
+      }).join('');
+  mostra('p-result');
+}
+function repeteix(){ obreConfig(T.t,T.n); }
+
+/* ============ DADES ============ */
+function exporta(){
+  const b=new Blob([JSON.stringify({eina:'pamo_tests',v:DATA.v,exportat:new Date().toISOString(),nom:S.nom,testos:S.testos},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download=`progres_${(S.nom||'usuaria').toLowerCase()}_${new Date().toISOString().slice(0,10)}.json`; a.click();
+}
+function importa(inp){
+  const f=inp.files[0]; if(!f)return; const rd=new FileReader();
+  rd.onload=e=>{ try{ const o=JSON.parse(e.target.result);
+      if(!o.testos) throw 0;
+      if(!confirm('Substituir el progrés actual pel del fitxer?')) return;
+      S.testos=o.testos||{}; desa(); pintaTemes(); tancaDlg(); alert('Progrés importat.');
+    }catch(err){ alert('El fitxer no té el format esperat.') } };
+  rd.readAsText(f); inp.value='';
+}
+function esborra(){
+  if(!confirm(`Esborrar tot el progrés de ${S.nom}? No es pot desfer.`))return;
+  S.testos={}; desaLocal(); sb.from('progres').delete().eq('usuari_id',S.uid).then(()=>{}); pintaTemes(); tancaDlg();
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+/* ============ ARRENCADA ============ */
+document.getElementById('notaInici').innerHTML=
+  `<b>${DATA.meta.redactats} preguntes reals</b> del corpus, repartides en <b>${DATA.temes.reduce((a,t)=>a+t.tests.length,0)} tests</b>. Cada test porta <b>una sola pregunta de cada família</b>: no es repeteix res. `+
+  `El progrés es guarda al núvol i es manté encara que canviïs de dispositiu.`;
+sb.auth.onAuthStateChange((_e,session)=>{ if(session) entraSessio(session); else mostraLogin(); });
+sb.auth.getSession().then(({data:{session}})=>{ if(session) entraSessio(session); else mostraLogin(); });
+</script>
+</body>
+</html>
