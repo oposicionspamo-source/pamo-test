@@ -278,6 +278,20 @@ h2{font-family:var(--serif);font-size:20px;font-weight:400;margin:34px 0 12px}
     <button class="secund" style="border-color:#E8C4CC;color:var(--carmi)" onclick="esborra()">Esborra el meu progrés</button>
   </div>
   <input type="file" id="fitxer" accept=".json" style="display:none" onchange="importa(this)">
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--linia)">
+    <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta-2);font-weight:700;margin-bottom:9px">Nota estimada (opcional)</div>
+    <p style="font-size:12.5px;color:var(--tinta-2);margin:0 0 12px">Només és informatiu: no substitueix el llindar de 10/30, que és el que compta de veritat.</p>
+    <label style="display:block;font-size:13.5px;margin-bottom:10px">Penalització per error:
+      <select id="selResta" onchange="canviaPreferencies()" style="margin-left:8px;padding:4px 8px;border-radius:6px;border:1.5px solid var(--linia);font-family:inherit">
+        <option value="cap">No penalitza</option>
+        <option value="1/4">1/4 per error</option>
+        <option value="1/3">1/3 per error</option>
+      </select>
+    </label>
+    <label style="display:block;font-size:13.5px">Puntuació màxima:
+      <input type="number" id="inpMax" min="1" step="1" onchange="canviaPreferencies()" style="width:56px;margin-left:8px;padding:4px 8px;border-radius:6px;border:1.5px solid var(--linia);font-family:inherit">
+    </label>
+  </div>
   <div class="fila" style="margin-top:18px"><button class="primari" onclick="tancaDlg()">Tancar</button></div>
 </div></div>
 
@@ -290,7 +304,8 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb=window.supabase.createClient(SUPA_URL,SUPA_KEY);
 
 /* ============ ESTAT ============ */
-let S={uid:null,nom:null,rol:null,email:null,testos:{}};
+const RESTES={cap:0,'1/4':0.25,'1/3':1/3};
+let S={uid:null,nom:null,rol:null,email:null,testos:{},pref:{restaKey:'cap',max:3}};
 let ordre='ritme', cfg={rec:'sencer',cor:'imm'}, T=null;
 
 function claul(uid){return 'pamo_tests_v3_'+uid}
@@ -333,6 +348,7 @@ async function entraSessio(session){
   S.nom=perfil?perfil.nom:S.email; S.rol=perfil?perfil.rol:'estudiant';
   S.testos=carregaLocal(S.uid);
   await sincronitzaInici();
+  await carregaPreferencies();
   document.getElementById('btnPerfil').textContent=S.nom;
   document.getElementById('btnPerfil').style.display='';
   document.getElementById('btnDades').style.display='';
@@ -396,8 +412,30 @@ document.getElementById('btnDades').onclick=()=>{
   const n=Object.values(prog()).filter(r=>r.intents>0).length, total=DATA.temes.reduce((a,t)=>a+t.tests.length,0);
   document.getElementById('dlgTxt').innerHTML=`<b>${S.nom}</b> té <b>${n}</b> de ${total} tests fets. `+
    `El progrés es guarda al núvol i es manté si canvies de dispositiu; a més queda en còpia local en aquest navegador.`;
+  document.getElementById('selResta').value=S.pref.restaKey;
+  document.getElementById('inpMax').value=S.pref.max;
   document.getElementById('dlgDades').classList.add('on');
 };
+
+/* ============ PREFERÈNCIES (nota estimada) ============ */
+async function carregaPreferencies(){
+  try{
+    const {data}=await sb.from('preferencies').select('resta_key,puntuacio_max').eq('usuari_id',S.uid).single();
+    S.pref = data ? {restaKey:data.resta_key, max:data.puntuacio_max} : {restaKey:'cap',max:3};
+  }catch(e){ S.pref={restaKey:'cap',max:3}; }
+}
+async function canviaPreferencies(){
+  const restaKey=document.getElementById('selResta').value;
+  let max=parseInt(document.getElementById('inpMax').value,10);
+  if(!max||max<1){ max=3; document.getElementById('inpMax').value=3; }
+  S.pref={restaKey,max};
+  try{ await sb.from('preferencies').upsert({usuari_id:S.uid,resta_key:restaKey,puntuacio_max:max,actualitzat_el:new Date().toISOString()},{onConflict:'usuari_id'}); }
+  catch(e){ console.warn('no s\'ha pogut desar la preferència, es reintentarà en el proper canvi',e); }
+}
+function notaSobre(encerts,errors,n){
+  const net=Math.max(0, encerts - errors*RESTES[S.pref.restaKey]);
+  return Math.max(0, Math.min(S.pref.max, (net/n)*S.pref.max));
+}
 
 /* ============ LLISTAT DE TEMES ============ */
 function setOrdre(o){ordre=o;document.getElementById('tog-ritme').classList.toggle('on',o==='ritme');document.getElementById('tog-num').classList.toggle('on',o==='num');pintaTemes()}
@@ -666,12 +704,17 @@ function acaba(){
   r.cua=q.filter((x,i)=>T.resp[i]!==x.c).map(x=>x.id); r.rondes=0; r.tancat=r.cua.length===0;
   prog()[k]=r; desa(k);
   const pc=Math.round(100*encerts/n), llindar=Math.round(n*10/30);
+  const errQ=q.reduce((a,x,i)=>a+(T.resp[i]!==null&&T.resp[i]!==x.c?1:0),0);
+  const nota=notaSobre(encerts,errQ,n);
   document.getElementById('resTit').textContent=`Tema ${T.t} · ${tema(T.t).tests.find(x=>x.n===T.n).lab}`;
   document.getElementById('resSub').textContent=`${tema(T.t).nom} — ${S.nom}, intent ${r.intents}`;
   document.getElementById('resMarc').innerHTML=
     `<div class="n">${encerts}<small> / ${n}</small></div><div class="pc">${pc}% d'encerts`+
     (r.intents>1?` · millor marca ${r.millor}/${n}`:'')+`</div>`+
-    `<div class="llindar ${encerts>=llindar?'ok':'ko'}">${encerts>=llindar?'Per sobre':'Per sota'} del ritme de llindar (${llindar}/${n}, equivalent a 10 de 30)</div>`;
+    `<div class="llindar ${encerts>=llindar?'ok':'ko'}">${encerts>=llindar?'Per sobre':'Per sota'} del ritme de llindar (${llindar}/${n}, equivalent a 10 de 30)</div>`+
+    `<div class="pc" style="margin-top:9px">Nota estimada amb el teu criteri: <b>${nota.toFixed(2)} / ${S.pref.max}</b>`+
+    (S.pref.restaKey==='cap'?' (sense penalització)':` (penalització ${S.pref.restaKey} per error)`)+
+    ` · <a href="#" onclick="document.getElementById('btnDades').click();return false" style="color:var(--porpra)">canvia-ho</a></div>`;
   const errors=q.map((x,i)=>({x,i})).filter(o=>T.resp[o.i]!==o.x.c);
   document.getElementById('resRev').innerHTML = errors.length===0
     ? `<div class="card buit">Cap error. Test tancat, no hi ha res a repescar.</div>`
