@@ -429,6 +429,7 @@ async function canviaPreferencies(){
   let max=parseInt(document.getElementById('inpMax').value,10);
   if(!max||max<1){ max=3; document.getElementById('inpMax').value=3; }
   S.pref={restaKey,max};
+  refrescaNotaSiToca();
   try{ await sb.from('preferencies').upsert({usuari_id:S.uid,resta_key:restaKey,puntuacio_max:max,actualitzat_el:new Date().toISOString()},{onConflict:'usuari_id'}); }
   catch(e){ console.warn('no s\'ha pogut desar la preferència, es reintentarà en el proper canvi',e); }
 }
@@ -696,6 +697,19 @@ function surt(){
 }
 
 /* ============ RESULTAT ============ */
+let lastResultat=null; // {encerts,errQ,n} del darrer test acabat, per poder refrescar la nota si es canvia el criteri sense sortir d'aquesta pantalla
+function notaLiniaHTML(encerts,errQ,n){
+  const nota=notaSobre(encerts,errQ,n);
+  return `<div class="pc" id="notaLinia" style="margin-top:9px">Nota estimada amb el teu criteri: <b>${nota.toFixed(2)} / ${S.pref.max}</b>`+
+    (S.pref.restaKey==='cap'?' (sense penalització)':` (penalització ${S.pref.restaKey} per error)`)+
+    ` · <a href="#" onclick="document.getElementById('btnDades').click();return false" style="color:var(--porpra)">canvia-ho</a></div>`;
+}
+function refrescaNotaSiToca(){
+  if(lastResultat && document.getElementById('p-result').classList.contains('on')){
+    const el=document.getElementById('notaLinia');
+    if(el) el.outerHTML=notaLiniaHTML(lastResultat.encerts,lastResultat.errQ,lastResultat.n);
+  }
+}
 function acaba(){
   const q=T.q, n=q.length, encerts=q.reduce((a,x,i)=>a+(T.resp[i]===x.c?1:0),0);
   const k=clau(T.t,T.n), r=prog()[k]||{intents:0,millor:0};
@@ -705,16 +719,14 @@ function acaba(){
   prog()[k]=r; desa(k);
   const pc=Math.round(100*encerts/n), llindar=Math.round(n*10/30);
   const errQ=q.reduce((a,x,i)=>a+(T.resp[i]!==null&&T.resp[i]!==x.c?1:0),0);
-  const nota=notaSobre(encerts,errQ,n);
+  lastResultat={encerts,errQ,n};
   document.getElementById('resTit').textContent=`Tema ${T.t} · ${tema(T.t).tests.find(x=>x.n===T.n).lab}`;
   document.getElementById('resSub').textContent=`${tema(T.t).nom} — ${S.nom}, intent ${r.intents}`;
   document.getElementById('resMarc').innerHTML=
     `<div class="n">${encerts}<small> / ${n}</small></div><div class="pc">${pc}% d'encerts`+
     (r.intents>1?` · millor marca ${r.millor}/${n}`:'')+`</div>`+
     `<div class="llindar ${encerts>=llindar?'ok':'ko'}">${encerts>=llindar?'Per sobre':'Per sota'} del ritme de llindar (${llindar}/${n}, equivalent a 10 de 30)</div>`+
-    `<div class="pc" style="margin-top:9px">Nota estimada amb el teu criteri: <b>${nota.toFixed(2)} / ${S.pref.max}</b>`+
-    (S.pref.restaKey==='cap'?' (sense penalització)':` (penalització ${S.pref.restaKey} per error)`)+
-    ` · <a href="#" onclick="document.getElementById('btnDades').click();return false" style="color:var(--porpra)">canvia-ho</a></div>`;
+    notaLiniaHTML(encerts,errQ,n);
   const errors=q.map((x,i)=>({x,i})).filter(o=>T.resp[o.i]!==o.x.c);
   document.getElementById('resRev').innerHTML = errors.length===0
     ? `<div class="card buit">Cap error. Test tancat, no hi ha res a repescar.</div>`
