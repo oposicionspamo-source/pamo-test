@@ -82,6 +82,10 @@ h2{font-family:var(--serif);font-size:20px;font-weight:400;margin:34px 0 12px}
 .xip.pend .s{color:#6E4F0C;font-weight:600}
 .repesca-hdr{background:var(--ocre-cl);border-left:3px solid var(--ocre);border-radius:0 8px 8px 0;padding:13px 16px;font-size:13.5px;color:#5A400A;margin-bottom:18px}
 .repesca-hdr b{color:#3F2C05}
+.encurs-hdr{background:var(--blau-cl);border-left:3px solid var(--blau);border-radius:0 8px 8px 0;padding:13px 16px;font-size:13.5px;color:#1B4A6E;margin-bottom:18px}
+.encurs-hdr b{color:#123A57}
+.xip.encurs{border-color:var(--blau);background:var(--blau-cl)}
+.xip.encurs .s{color:var(--blau);font-weight:600}
 .ronda{background:#6E4F0C;color:#fff;border-radius:5px;padding:2px 8px;font-size:10.5px;font-weight:700;letter-spacing:.04em;font-family:var(--mono)}
 .tancat{display:inline-block;background:var(--verd-cl);color:var(--verd);border-radius:99px;padding:5px 16px;font-size:13px;font-weight:600;margin-top:10px}
 .xip.fet .s{color:var(--verd);font-weight:600}
@@ -300,7 +304,7 @@ function desa(k){ desaLocal(); if(k) desaRemot(k); else Object.keys(S.testos).fo
 const prog=()=>S.testos;
 const tema=t=>DATA.temes.find(x=>x.t===t);
 const clau=(t,n)=>'T'+t+'-'+n;
-function fetsTema(t){const o=tema(t);return o.tests.filter(x=>{const r=prog()[clau(t,x.n)];return r&&!(r.cua||[]).length}).length}
+function fetsTema(t){const o=tema(t);return o.tests.filter(x=>{const r=prog()[clau(t,x.n)];return r&&r.intents>0&&!(r.cua||[]).length}).length}
 function temaComplet(t){return fetsTema(t)===tema(t).tests.length}
 
 /* ============ NAVEGACIÓ ============ */
@@ -342,12 +346,28 @@ async function sincronitzaInici(){
     let canvis=false;
     data.forEach(fila=>{
       const rem=fila.dades, loc=S.testos[fila.test_id];
-      if(!loc || (rem.intents||0)>(loc.intents||0)){ S.testos[fila.test_id]=rem; canvis=true; }
+      let usaRemot=!loc;
+      if(loc){
+        if((rem.intents||0)>(loc.intents||0)) usaRemot=true;
+        else if((rem.intents||0)===(loc.intents||0)){
+          const tsRem=(rem.encurs&&rem.encurs.ts)||0, tsLoc=(loc.encurs&&loc.encurs.ts)||0;
+          if(tsRem>tsLoc) usaRemot=true;
+        }
+      }
+      if(usaRemot){ S.testos[fila.test_id]=rem; canvis=true; }
     });
     if(canvis) desaLocal();
     for(const k in S.testos){
-      const rem=data.find(f=>f.test_id===k);
-      if(!rem || (S.testos[k].intents||0)>(rem.dades.intents||0)) await desaRemot(k);
+      const rem=data.find(f=>f.test_id===k), loc=S.testos[k];
+      let pujaLocal=!rem;
+      if(rem){
+        if((loc.intents||0)>(rem.dades.intents||0)) pujaLocal=true;
+        else if((loc.intents||0)===(rem.dades.intents||0)){
+          const tsLoc=(loc.encurs&&loc.encurs.ts)||0, tsRem=(rem.dades.encurs&&rem.dades.encurs.ts)||0;
+          if(tsLoc>tsRem) pujaLocal=true;
+        }
+      }
+      if(pujaLocal) await desaRemot(k);
     }
   }catch(e){ console.warn('sense connexió amb Supabase: es fa servir només la còpia local',e); }
 }
@@ -362,7 +382,7 @@ async function mostraEquip(){
   const totalTests=DATA.temes.reduce((a,t)=>a+t.tests.length,0);
   const files=perfils.filter(p=>p.id!==S.uid).map(p=>{
     const seus=(progresTot||[]).filter(r=>r.usuari_id===p.id);
-    const fets=seus.filter(r=>!(r.dades.cua||[]).length).length;
+    const fets=seus.filter(r=>r.dades.intents>0&&!(r.dades.cua||[]).length).length;
     return `<div style="padding:14px 0;border-bottom:1px solid var(--linia)">
       <b style="font-family:var(--serif);font-size:17px">${p.nom}</b> <span style="font-size:12px;color:var(--tinta-2)">(${p.email})</span>
       <div style="font-size:13.5px;color:var(--tinta-2);margin-top:4px">${fets} de ${totalTests} tests tancats · ${seus.length} tests iniciats</div>
@@ -373,7 +393,7 @@ async function mostraEquip(){
 
 const tancaDlg=()=>document.getElementById('dlgDades').classList.remove('on');
 document.getElementById('btnDades').onclick=()=>{
-  const n=Object.keys(prog()).length, total=DATA.temes.reduce((a,t)=>a+t.tests.length,0);
+  const n=Object.values(prog()).filter(r=>r.intents>0).length, total=DATA.temes.reduce((a,t)=>a+t.tests.length,0);
   document.getElementById('dlgTxt').innerHTML=`<b>${S.nom}</b> té <b>${n}</b> de ${total} tests fets. `+
    `El progrés es guarda al núvol i es manté si canvies de dispositiu; a més queda en còpia local en aquest navegador.`;
   document.getElementById('dlgDades').classList.add('on');
@@ -403,11 +423,11 @@ function pintaTemes(){
     const xips=o.tests.map(x=>{
       const r=prog()[clau(o.t,x.n)];
       let cl='',s=`${x.q.length} preguntes`;
-      if(r){
+      if(r && r.intents>0){
         const pend=(r.cua||[]).length;
         if(pend){ cl='pend'; s=`${r.millor}/${x.q.length} · ${pend} error${pend>1?'s':''} per repescar`; }
         else { cl='fet'; s=`${r.millor}/${x.q.length} · tancat`; }
-      }
+      } else if(r && r.encurs){ cl='encurs'; s=`a mitges · pregunta ${r.encurs.i+1} de ${x.q.length}`; }
       return `<button class="xip ${cl}" onclick="obreConfig(${o.t},${x.n})"><span class="t">${x.lab}</span><span class="s">${s}</span></button>`;
     }).join('');
     return `<div class="tema" id="tm-${o.t}">
@@ -444,9 +464,9 @@ let selT=null,selN=null;
 function obreConfig(t,n){
   selT=t;selN=n; const o=tema(t), tst=o.tests.find(x=>x.n===n), q=tst.q.length;
   document.getElementById('cfgTit').textContent=`Tema ${t} · ${tst.lab}`;
-  const r=prog()[clau(t,n)], pend=r?(r.cua||[]).length:0;
+  const r=prog()[clau(t,n)], pend=(r&&r.intents>0)?(r.cua||[]).length:0;
   document.getElementById('cfgSub').innerHTML=`${o.nom} — <b>${q} preguntes</b>`+
-    (r?` · ja el vas fer ${r.intents} vegada${r.intents>1?'s':''}, millor resultat ${r.millor}/${q}`:'');
+    ((r&&r.intents>0)?` · ja el vas fer ${r.intents} vegada${r.intents>1?'s':''}, millor resultat ${r.millor}/${q}`:'');
   const zr=document.getElementById('zonaRepesca');
   if(pend){
     zr.innerHTML=`<div class="repesca-hdr"><b>Tens ${pend} error${pend>1?'s':''} sense tancar d'aquest test.</b> `+
@@ -454,6 +474,13 @@ function obreConfig(t,n){
       `La repesca no puja la nota del test, que continua sent la de la primera volta.</div>`+
       `<button class="primari" onclick="comencaRepesca()">Repescar els ${pend} errors</button>`+
       `<div style="margin:16px 0 4px;font-size:12.5px;color:var(--tinta-2)">O bé torna a fer el test sencer des de zero:</div>`;
+    zr.style.display='';
+  } else if(r && (!r.intents||r.intents===0) && r.encurs){
+    zr.innerHTML=`<div class="encurs-hdr"><b>Tens aquest test a mitges.</b> `+
+      `Vas arribar a la pregunta ${r.encurs.i+1} de ${q}, en un altre moment o dispositiu. `+
+      `Pots continuar exactament on ho vas deixar.</div>`+
+      `<button class="primari" onclick="continuaTest()">Continua on ho vas deixar</button>`+
+      `<div style="margin:16px 0 4px;font-size:12.5px;color:var(--tinta-2)">O bé comença'l de nou des de zero:</div>`;
     zr.style.display='';
   } else { zr.innerHTML=''; zr.style.display='none'; }
   const nt=Math.ceil(q/10);
@@ -479,7 +506,23 @@ function setCfg(k,v){cfg[k]=v;
 function comenca(){
   const o=tema(selT), tst=o.tests.find(x=>x.n===selN);
   T={mode:'test',t:selT,n:selN,q:tst.q,resp:new Array(tst.q.length).fill(null),vist:new Array(tst.q.length).fill(false),i:0,cor:cfg.cor,rec:cfg.rec,inici:Date.now()};
+  const k=clau(selT,selN), r=prog()[k];
+  if(r && r.encurs){ delete r.encurs; desa(k); }
   pintaQ(); mostra('p-test');
+}
+function continuaTest(){
+  const o=tema(selT), tst=o.tests.find(x=>x.n===selN), r=prog()[clau(selT,selN)], e=r&&r.encurs;
+  if(!e){ comenca(); return; }
+  T={mode:'test',t:selT,n:selN,q:tst.q,resp:e.resp.slice(),vist:e.vist.slice(),i:e.i,cor:e.cor,rec:e.rec,inici:Date.now()};
+  pintaQ(); mostra('p-test');
+}
+function desaEnCurs(){
+  if(!T||T.mode!=='test')return;
+  const k=clau(T.t,T.n);
+  let r=prog()[k];
+  if(!r){ r={intents:0,millor:0,total:T.q.length}; prog()[k]=r; }
+  r.encurs={resp:T.resp,vist:T.vist,i:T.i,cor:T.cor,rec:T.rec,ts:Date.now()};
+  desa(k);
 }
 const LTR=['A','B','C','D'];
 function barreja(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -593,10 +636,12 @@ function respon(i){
     const q=T.q[T.i];
     if(i===q.c) T.pend.delete(q.id);
     desaCua();
+  } else {
+    desaEnCurs();
   }
   pintaQ();
 }
-function vesA(i){ if(i<0||i>=T.q.length)return; T.i=i; pintaQ(); }
+function vesA(i){ if(i<0||i>=T.q.length)return; T.i=i; if(T.mode==='test') desaEnCurs(); pintaQ(); }
 function pista(n){
   const p=pistesDe(T.q[T.i]); if(!p)return;
   const z=document.getElementById('zp');
@@ -608,7 +653,7 @@ function pista(n){
 function surt(){
   const msg = T.mode==='repesca'
     ? 'Surts de la repesca? El que ja has encertat queda desat i podràs reprendre-la des del llistat.'
-    : 'Surts del test? El que has respost no es desarà.';
+    : 'Surts del test? El que has respost queda desat: podràs continuar-lo després, des d\'aquest dispositiu o d\'un altre.';
   if(confirm(msg)){ if(T.mode==='repesca') desaCua(); pintaTemes(); mostra('p-temes'); }
 }
 
@@ -616,6 +661,7 @@ function surt(){
 function acaba(){
   const q=T.q, n=q.length, encerts=q.reduce((a,x,i)=>a+(T.resp[i]===x.c?1:0),0);
   const k=clau(T.t,T.n), r=prog()[k]||{intents:0,millor:0};
+  delete r.encurs;
   r.intents+=1; r.darrer=encerts; r.millor=Math.max(r.millor,encerts); r.total=n; r.data=new Date().toISOString().slice(0,10);
   r.cua=q.filter((x,i)=>T.resp[i]!==x.c).map(x=>x.id); r.rondes=0; r.tancat=r.cua.length===0;
   prog()[k]=r; desa(k);
